@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e3a8a">
+<title>Meu Deck — Inglês</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --card2:#334155;
+    --accent:#3b82f6; --accent2:#2563eb;
+    --good:#22c55e; --text:#f1f5f9; --muted:#94a3b8;
+    --radius:20px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--text);
+    display:flex; flex-direction:column; min-height:100dvh;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  header{
+    padding:18px 20px 8px; display:flex; align-items:center; gap:12px;
+  }
+  header h1{font-size:1.25rem; font-weight:700; letter-spacing:-.02em}
+  header .sub{color:var(--muted); font-size:.8rem}
+  .back{
+    background:var(--card); border:none; color:var(--text); cursor:pointer;
+    width:40px; height:40px; border-radius:12px; font-size:1.2rem; display:none;
+    align-items:center; justify-content:center;
+  }
+  main{flex:1; display:flex; flex-direction:column; padding:8px 20px 20px}
+
+  /* ---- Deck list ---- */
+  .decks{display:grid; gap:14px; margin-top:6px}
+  .deck-btn{
+    background:linear-gradient(135deg,var(--card),var(--card2));
+    border:1px solid #ffffff14; border-radius:var(--radius);
+    padding:20px; text-align:left; color:var(--text); cursor:pointer;
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    transition:transform .12s ease;
+  }
+  .deck-btn:active{transform:scale(.98)}
+  .deck-btn .name{font-size:1.1rem; font-weight:600}
+  .deck-btn .meta{color:var(--muted); font-size:.82rem; margin-top:4px}
+  .deck-btn .count{
+    background:var(--accent); color:#fff; font-weight:700; font-size:.8rem;
+    padding:6px 12px; border-radius:999px; white-space:nowrap;
+  }
+
+  /* ---- Study ---- */
+  #study{display:none; flex:1; flex-direction:column}
+  .bar{display:flex; align-items:center; gap:10px; margin-bottom:14px}
+  .progress{flex:1; height:8px; background:var(--card); border-radius:999px; overflow:hidden}
+  .progress > i{display:block; height:100%; background:var(--accent); width:0; transition:width .25s}
+  .counter{color:var(--muted); font-size:.85rem; font-variant-numeric:tabular-nums}
+
+  .card-wrap{flex:1; perspective:1200px; display:flex; min-height:300px}
+  .card{
+    position:relative; flex:1; cursor:pointer;
+    transform-style:preserve-3d; transition:transform .5s cubic-bezier(.2,.8,.3,1);
+  }
+  .card.flipped{transform:rotateY(180deg)}
+  .face{
+    position:absolute; inset:0; backface-visibility:hidden;
+    border-radius:var(--radius); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; padding:28px;
+    border:1px solid #ffffff14;
+  }
+  .face .tag{position:absolute; top:16px; left:18px; font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em}
+  .front{background:linear-gradient(135deg,#1e293b,#273449)}
+  .back{background:linear-gradient(135deg,#1d4ed8,#3b82f6); transform:rotateY(180deg)}
+  .term{font-size:2rem; font-weight:700; letter-spacing:-.02em; line-height:1.15}
+  .ex{margin-top:16px; color:var(--muted); font-size:.95rem; font-style:italic; max-width:90%}
+  .back .ex{color:#dbeafe}
+  .hint{position:absolute; bottom:16px; font-size:.75rem; color:var(--muted)}
+  .back .hint{color:#bfdbfe}
+
+  .controls{display:flex; gap:12px; margin-top:18px}
+  .controls button{
+    flex:1; padding:16px; border:none; border-radius:16px; font-size:1rem; font-weight:600;
+    cursor:pointer; background:var(--card2); color:var(--text); transition:transform .1s, opacity .2s;
+  }
+  .controls button:active{transform:scale(.96)}
+  .controls .known{background:var(--good); color:#04210f}
+  .controls button:disabled{opacity:.35}
+
+  .toolbar{display:flex; gap:10px; margin-top:12px; justify-content:center}
+  .toolbar button{
+    background:none; border:1px solid #ffffff22; color:var(--muted);
+    padding:9px 16px; border-radius:999px; font-size:.82rem; cursor:pointer;
+  }
+  .toolbar button:active{color:var(--text)}
+
+  .done{text-align:center; padding:40px 0}
+  .done .big{font-size:3rem; margin-bottom:10px}
+  .done p{color:var(--muted); margin-bottom:20px}
+  .done button{background:var(--accent); color:#fff; border:none; padding:14px 26px; border-radius:14px; font-weight:600; cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <button class="back" id="backBtn" aria-label="Voltar">‹</button>
+  <div>
+    <h1 id="title">Meus Decks</h1>
+    <div class="sub" id="subtitle">Escolhe um deck pra estudar</div>
+  </div>
+</header>
+
+<main>
+  <!-- Deck list -->
+  <section id="home">
+    <div class="decks" id="deckList"></div>
+  </section>
+
+  <!-- Study -->
+  <section id="study">
+    <div class="bar">
+      <div class="progress"><i id="progFill"></i></div>
+      <span class="counter" id="counter">0/0</span>
+    </div>
+
+    <div class="card-wrap" id="cardWrap">
+      <div class="card" id="card">
+        <div class="face front">
+          <span class="tag">Inglês</span>
+          <div class="term" id="frontTerm"></div>
+          <div class="ex" id="frontEx"></div>
+          <span class="hint">toca pra virar</span>
+        </div>
+        <div class="face back">
+          <span class="tag">Português</span>
+          <div class="term" id="backTerm"></div>
+          <div class="ex" id="backEx"></div>
+          <span class="hint">toca pra virar</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="prevBtn">‹ Anterior</button>
+      <button class="known" id="knownBtn">Sei ✓</button>
+      <button id="nextBtn">Próximo ›</button>
+    </div>
+    <div class="toolbar">
+      <button id="shuffleBtn">🔀 Embaralhar</button>
+      <button id="resetBtn">↺ Resetar progresso</button>
+    </div>
+
+    <div class="done" id="doneScreen" style="display:none">
+      <div class="big">🎉</div>
+      <p id="doneMsg">Terminaste o deck!</p>
+      <button id="againBtn">Estudar de novo</button>
+    </div>
+  </section>
+</main>
+
+<script>
+/* =======================================================================
+   EDITA AQUI TEUS DECKS  ▼▼▼
+   Cada deck: { name, cards: [ { en, pt, ex } ] }
+   - en = palavra/frase em inglês
+   - pt = tradução em português
+   - ex = exemplo (opcional, pode apagar a linha)
+   Copia o bloco de um deck pra criar outro.
+======================================================================= */
+const DECKS = [
+  {
+    name: "Conectivos & Transições",
+    cards: [
+      { en: "Anyway / Anyhow",            pt: "Voltando ao assunto / De qualquer forma", ex: "...the car broke down. Anyway, we made it to the hotel." },
+      { en: "Speaking of [Topic]",        pt: "Falando em...",            ex: "Speaking of budgets, have we secured funding?" },
+      { en: "By the way / Incidentally",  pt: "A propósito",              ex: "By the way, did you send the invite?" },
+      { en: "Moving on to...",            pt: "Passando para...",         ex: "That covers research. Moving on to timelines..." },
+      { en: "However",                    pt: "No entanto",               ex: "The AI is powerful. However, it increases costs." },
+      { en: "Having said that / That being said", pt: "Dito isso",        ex: "The system is outdated. Having said that, users like it." },
+      { en: "On the flip side",           pt: "Por outro lado",           ex: "Renting a sports car is expensive. On the flip side, it's unforgettable." },
+      { en: "Nevertheless / Nonetheless", pt: "Mesmo assim / Não obstante", ex: "The timeline is tight; nevertheless, we can deliver." },
+      { en: "Furthermore / Moreover",     pt: "Além disso",               ex: "It reduces load. Furthermore, it cuts completion time." },
+      { en: "On top of that",             pt: "Além do mais",             ex: "My flight was delayed, and on top of that, they lost my bag." },
+      { en: "Not to mention",             pt: "Sem falar em / Sem contar que", ex: "It requires budget, not to mention training hours." },
+      { en: "Therefore / Consequently",   pt: "Portanto / Consequentemente", ex: "The API failed. Consequently, the screen was blank." },
+      { en: "As a result",                pt: "Como resultado",           ex: "We skipped testing. As a result, we had bugs." },
+      { en: "Well,...",                   pt: "Bem...",                   ex: "Well, it's possible, but not recommended." },
+      { en: "To be honest / Honestly",    pt: "Para ser sincero",         ex: "To be honest, users won't understand this." },
+      { en: "Actually",                   pt: "Na verdade (≠ currently)", ex: "Actually, most users enter through search." },
+      { en: "Look,...",                   pt: "Olha...",                  ex: "Look, we need to finalize the backend first." },
+      { en: "At the end of the day",      pt: "No fim das contas",        ex: "At the end of the day, the product fails without accessibility." },
+      { en: "Ultimately",                 pt: "Em última análise",        ex: "Ultimately, our goal is to bridge the gap." },
+      { en: "In a nutshell",              pt: "Em resumo / Trocando em miúdos", ex: "In a nutshell, it makes data retrieval twice as fast." },
+    ]
+  },
+  {
+    name: "Correções de Gramática",
+    cards: [
+      { en: "Taught",              pt: "Ensinou / Ensinado (≠ teached)",      ex: "The MBA taught me a lot about strategy." },
+      { en: "At the same time",    pt: "Ao mesmo tempo (≠ at same time)",     ex: "We need to innovate and cut costs at the same time." },
+      { en: "It's more challenging", pt: "É mais desafiador (use 'It', ≠ is)", ex: "It's more challenging to design for enterprise." },
+      { en: "To say",              pt: "Dizer (≠ to speak p/ palavras)",      ex: "I just wanted to say thank you." },
+      { en: "Improvisation",       pt: "Improvisação (substantivo)",          ex: "The presentation required a lot of improvisation." },
+      { en: "I didn't see",        pt: "Eu não vi (didn't + verbo base, ≠ didn't saw)", ex: "I didn't see the new UI update." },
+    ]
+  },
+];
+/* ▲▲▲  FIM DA EDIÇÃO  ─ resto é o motor do app, não precisa mexer */
+
+const $ = id => document.getElementById(id);
+let deckIdx = 0, order = [], pos = 0, flipped = false;
+const KEY = "meudeck_progress_v1";
+
+function loadProgress(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch{ return {}; } }
+function saveProgress(p){ localStorage.setItem(KEY, JSON.stringify(p)); }
+
+function renderDecks(){
+  const prog = loadProgress();
+  $("deckList").innerHTML = "";
+  DECKS.forEach((d,i)=>{
+    const known = (prog[i]?.known||[]).length;
+    const btn = document.createElement("button");
+    btn.className = "deck-btn";
+    btn.innerHTML = `<div>
+        <div class="name">${d.name}</div>
+        <div class="meta">${known} de ${d.cards.length} marcadas “sei”</div>
+      </div>
+      <span class="count">${d.cards.length} cards</span>`;
+    btn.onclick = ()=>openDeck(i);
+    $("deckList").appendChild(btn);
+  });
+}
+
+function openDeck(i){
+  deckIdx = i;
+  order = DECKS[i].cards.map((_,k)=>k);
+  pos = 0; flipped = false;
+  $("home").style.display = "none";
+  $("study").style.display = "flex";
+  $("backBtn").style.display = "flex";
+  $("doneScreen").style.display = "none";
+  $("cardWrap").style.display = "flex";
+  document.querySelector(".controls").style.display = "flex";
+  document.querySelector(".toolbar").style.display = "flex";
+  $("title").textContent = DECKS[i].name;
+  $("subtitle").textContent = "Toca no card pra ver a tradução";
+  showCard();
+}
+
+function goHome(){
+  $("home").style.display = "block";
+  $("study").style.display = "none";
+  $("backBtn").style.display = "none";
+  $("title").textContent = "Meus Decks";
+  $("subtitle").textContent = "Escolhe um deck pra estudar";
+  renderDecks();
+}
+
+function showCard(){
+  const cards = DECKS[deckIdx].cards;
+  if(pos >= order.length){ return finish(); }
+  const c = cards[order[pos]];
+  flipped = false;
+  $("card").classList.remove("flipped");
+  $("frontTerm").textContent = c.en;
+  $("backTerm").textContent  = c.pt;
+  $("frontEx").textContent = c.ex || "";
+  $("backEx").textContent  = c.ex || "";
+  $("counter").textContent = `${pos+1}/${order.length}`;
+  $("progFill").style.width = ((pos)/order.length*100) + "%";
+  $("prevBtn").disabled = pos===0;
+}
+
+function flip(){ flipped=!flipped; $("card").classList.toggle("flipped", flipped); }
+function next(){ if(pos < order.length){ pos++; showCard(); } }
+function prev(){ if(pos>0){ pos--; showCard(); } }
+
+function markKnown(){
+  const prog = loadProgress();
+  prog[deckIdx] = prog[deckIdx] || { known:[] };
+  const cardId = order[pos];
+  if(!prog[deckIdx].known.includes(cardId)) prog[deckIdx].known.push(cardId);
+  saveProgress(prog);
+  next();
+}
+
+function shuffle(){
+  for(let i=order.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [order[i],order[j]]=[order[j],order[i]]; }
+  pos=0; showCard();
+}
+
+function finish(){
+  $("cardWrap").style.display="none";
+  document.querySelector(".controls").style.display="none";
+  document.querySelector(".toolbar").style.display="none";
+  $("progFill").style.width="100%";
+  $("counter").textContent = `${order.length}/${order.length}`;
+  $("doneScreen").style.display="block";
+}
+
+function resetProgress(){
+  const prog = loadProgress();
+  delete prog[deckIdx];
+  saveProgress(prog);
+  $("subtitle").textContent = "Progresso resetado";
+  setTimeout(()=>$("subtitle").textContent="Toca no card pra ver a tradução", 1500);
+}
+
+$("card").onclick = flip;
+$("nextBtn").onclick = next;
+$("prevBtn").onclick = prev;
+$("knownBtn").onclick = markKnown;
+$("shuffleBtn").onclick = shuffle;
+$("resetBtn").onclick = resetProgress;
+$("backBtn").onclick = goHome;
+$("againBtn").onclick = ()=>{ pos=0; $("cardWrap").style.display="flex"; document.querySelector(".controls").style.display="flex"; document.querySelector(".toolbar").style.display="flex"; $("doneScreen").style.display="none"; showCard(); };
+
+document.addEventListener("keydown", e=>{
+  if($("study").style.display==="none") return;
+  if(e.key==="ArrowRight") next();
+  if(e.key==="ArrowLeft") prev();
+  if(e.key===" "){ e.preventDefault(); flip(); }
+});
+
+renderDecks();
+
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "Meu Deck — Inglês",
+  "short_name": "Meu Deck",
+  "description": "Flashcards de inglês estilo Quizlet, offline.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#1e3a8a",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
