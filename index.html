@@ -58,23 +58,22 @@
   .progress > i{display:block; height:100%; background:var(--accent); width:0; transition:width .25s}
   .counter{color:var(--muted); font-size:.85rem; font-variant-numeric:tabular-nums}
 
-  .card-wrap{flex:1; perspective:1200px; display:flex; min-height:300px}
-  .card{
-    position:relative; flex:1; cursor:pointer;
-    transform-style:preserve-3d; transition:transform .5s cubic-bezier(.2,.8,.3,1);
-  }
-  .card.flipped{transform:rotateY(180deg)}
+  .card-wrap{flex:1; display:flex; min-height:320px}
+  .card{position:relative; flex:1; cursor:pointer; min-height:320px}
   .face{
-    position:absolute; inset:0; backface-visibility:hidden;
+    position:absolute; inset:0;
     border-radius:var(--radius); display:flex; flex-direction:column;
     align-items:center; justify-content:center; text-align:center; padding:28px;
     border:1px solid #ffffff14;
+    opacity:0; visibility:hidden; transform:scale(.96);
+    transition:opacity .2s ease, transform .2s ease;
   }
+  .face.active{opacity:1; visibility:visible; transform:scale(1)}
   .face .tag{position:absolute; top:16px; left:18px; font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em}
   .front{background:linear-gradient(135deg,#1e293b,#273449)}
-  .back{background:linear-gradient(135deg,#1d4ed8,#3b82f6); transform:rotateY(180deg)}
-  .term{font-size:2rem; font-weight:700; letter-spacing:-.02em; line-height:1.15}
-  .ex{margin-top:16px; color:var(--muted); font-size:.95rem; font-style:italic; max-width:90%}
+  .back{background:linear-gradient(135deg,#1d4ed8,#3b82f6)}
+  .term{font-size:2rem; font-weight:700; letter-spacing:-.02em; line-height:1.15; max-width:100%; overflow-wrap:anywhere}
+  .ex{margin-top:16px; color:var(--muted); font-size:.95rem; font-style:italic; max-width:92%; overflow-wrap:anywhere}
   .back .ex{color:#dbeafe}
   .hint{position:absolute; bottom:16px; font-size:.75rem; color:var(--muted)}
   .back .hint{color:#bfdbfe}
@@ -125,13 +124,13 @@
 
     <div class="card-wrap" id="cardWrap">
       <div class="card" id="card">
-        <div class="face front">
+        <div class="face front active" id="frontFace">
           <span class="tag">Inglês</span>
           <div class="term" id="frontTerm"></div>
           <div class="ex" id="frontEx"></div>
           <span class="hint">toca pra virar</span>
         </div>
-        <div class="face back">
+        <div class="face back" id="backFace">
           <span class="tag">Português</span>
           <div class="term" id="backTerm"></div>
           <div class="ex" id="backEx"></div>
@@ -261,7 +260,7 @@ function showCard(){
   if(pos >= order.length){ return finish(); }
   const c = cards[order[pos]];
   flipped = false;
-  $("card").classList.remove("flipped");
+  setFaces();
   $("frontTerm").textContent = c.en;
   $("backTerm").textContent  = c.pt;
   $("frontEx").textContent = c.ex || "";
@@ -271,7 +270,11 @@ function showCard(){
   $("prevBtn").disabled = pos===0;
 }
 
-function flip(){ flipped=!flipped; $("card").classList.toggle("flipped", flipped); }
+function setFaces(){
+  $("frontFace").classList.toggle("active", !flipped);
+  $("backFace").classList.toggle("active", flipped);
+}
+function flip(){ flipped=!flipped; setFaces(); }
 function next(){ if(pos < order.length){ pos++; showCard(); } }
 function prev(){ if(pos>0){ pos--; showCard(); } }
 
