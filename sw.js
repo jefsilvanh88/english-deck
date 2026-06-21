@@ -1,4 +1,4 @@
-const CACHE = "meudeck-v4";
+const CACHE = "meudeck-v5";
 const ASSETS = [
   "./",
   "./index.html",
@@ -31,7 +31,7 @@ self.addEventListener("fetch", e => {
 
   if (isAppShell) {
     e.respondWith(
-      fetch(req).then(res => {
+      fetch(req, { cache: "no-store" }).then(res => {
         const copy = res.clone();
         caches.open(CACHE).then(c => c.put(req, copy));
         return res;
